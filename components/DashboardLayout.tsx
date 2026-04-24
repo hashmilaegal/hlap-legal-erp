@@ -32,7 +32,7 @@ const navigation = [
   { name: 'Documents', href: '/documents', icon: FolderIcon },
   { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon },
   { name: 'Reports', href: '/reports', icon: ChartBarIcon },
-  { name: 'Client Portal', href: '/client-portal/dashboard', icon: UserGroupIcon },
+  { name: 'Client Portal', href: '/clientportal/login', icon: UserGroupIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
@@ -48,7 +48,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Mobile sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
           <Transition.Child
@@ -139,7 +138,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Dialog>
       </Transition.Root>
 
-      {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 shadow-lg">
           <div className="flex h-auto py-6 flex-col justify-center border-b border-gray-100 mb-2">
@@ -215,7 +213,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* Main content */}
       <div className="lg:pl-80">
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/95 backdrop-blur-sm px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
