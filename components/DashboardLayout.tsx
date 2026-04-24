@@ -34,9 +34,6 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
-// Rest of the component remains the same as before...
-// (keeping the same JSX structure from the previous working version)
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
