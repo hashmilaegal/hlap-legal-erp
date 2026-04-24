@@ -16,6 +16,7 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   CurrencyRupeeIcon,
+  FolderIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -27,10 +28,14 @@ const navigation = [
   { name: 'Matters', href: '/matters', icon: ScaleIcon },
   { name: 'Time & Billing', href: '/time-entries', icon: ClockIcon },
   { name: 'Expenses', href: '/expenses', icon: CurrencyRupeeIcon },
+  { name: 'Documents', href: '/documents', icon: FolderIcon },
   { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon },
   { name: 'Reports', href: '/reports', icon: ChartBarIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
+
+// Rest of the component remains the same as before...
+// (keeping the same JSX structure from the previous working version)
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -135,7 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Dialog>
       </Transition.Root>
 
-      {/* Desktop sidebar - same structure as mobile but with wider width */}
+      {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 shadow-lg">
           <div className="flex h-auto py-6 flex-col justify-center border-b border-gray-100 mb-2">
