@@ -9,9 +9,7 @@ import {
   ScaleIcon, 
   DocumentTextIcon, 
   CurrencyRupeeIcon,
-  TrendingUpIcon,
   ClockIcon,
-  ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline'
 
 export default function DashboardPage() {
@@ -55,7 +53,7 @@ export default function DashboardPage() {
       .from('invoices')
       .select('*', { count: 'exact' })
 
-    const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.amount_paid || 0), 0) || 0
+    const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.amount_paid || inv.total_amount || 0), 0) || 0
     const pendingInvoices = invoices?.filter(inv => inv.status === 'sent' || inv.status === 'partial').length || 0
 
     setStats({
@@ -70,10 +68,10 @@ export default function DashboardPage() {
   }
 
   const statCards = [
-    { title: 'Total Clients', value: stats.totalClients, icon: UsersIcon, color: 'blue', change: '+12%' },
-    { title: 'Active Matters', value: stats.activeMatters, icon: ScaleIcon, color: 'purple', change: '+5%' },
-    { title: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString()}`, icon: CurrencyRupeeIcon, color: 'green', change: '+18%' },
-    { title: 'Pending Invoices', value: stats.pendingInvoices, icon: DocumentTextIcon, color: 'orange', change: '-3%' },
+    { title: 'Total Clients', value: stats.totalClients, icon: UsersIcon, color: 'blue' },
+    { title: 'Active Matters', value: stats.activeMatters, icon: ScaleIcon, color: 'purple' },
+    { title: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString()}`, icon: CurrencyRupeeIcon, color: 'green' },
+    { title: 'Pending Invoices', value: stats.pendingInvoices, icon: DocumentTextIcon, color: 'orange' },
   ]
 
   if (!user) return null
@@ -84,8 +82,8 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Welcome back to HLAP Legal ERP Suite</p>
+          <h1 className="text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back to HLAPL Enterprise ERP Suite</p>
         </div>
 
         {/* Stats Grid */}
@@ -96,9 +94,6 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm text-gray-500 uppercase tracking-wide">{stat.title}</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                  <p className={`text-xs mt-2 ${stat.change?.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change} from last month
-                  </p>
                 </div>
                 <div className={`h-12 w-12 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
                   <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
@@ -114,19 +109,19 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <a href="/clients" className="btn-primary text-center">+ Add New Client</a>
             <a href="/matters" className="btn-secondary text-center">+ Create New Matter</a>
-            <a href="/invoices" className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2.5 rounded-lg text-center">+ Generate Invoice</a>
-            <a href="/time-entries" className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-6 py-2.5 rounded-lg text-center">+ Log Time</a>
+            <a href="/invoices" className="bg-gradient-to-r from-[#c9a84c] to-[#8b6914] text-white px-6 py-2.5 rounded-lg text-center hover:opacity-90 transition">+ Generate Invoice</a>
+            <a href="/time-entries" className="bg-black text-[#c9a84c] border border-[#c9a84c] px-6 py-2.5 rounded-lg text-center hover:bg-[#c9a84c] hover:text-black transition">+ Log Time</a>
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* System Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card-premium">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Invoices</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
             </div>
             <div className="p-6">
-              <p className="text-gray-500 text-sm">No recent invoices</p>
+              <p className="text-gray-500 text-sm">No recent activity</p>
             </div>
           </div>
           <div className="card-premium">
