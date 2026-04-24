@@ -147,7 +147,7 @@ export default function DocumentsPage() {
     const fileName = `${Date.now()}.${fileExt}`
     const filePath = `documents/${fileName}`
 
-    const { error: uploadError, data } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(filePath, selectedFile)
 
@@ -177,24 +177,39 @@ export default function DocumentsPage() {
     if (!fileUrl) return
 
     const documentNumber = `DOC-${Date.now()}`
-    const tagsArray = formData.tags.split(',').map(tag => tag.trim())
+    const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
 
-    const { error } = await supabase.from('documents').insert([{
+    // Get user's auth_id
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', user?.email)
+      .single()
+
+    const insertData: any = {
       document_number: documentNumber,
       title: formData.title,
       description: formData.description,
-      category_id: formData.category_id || null,
-      client_id: formData.client_id || null,
-      matter_id: formData.matter_id || null,
       file_name: selectedFile.name,
       file_size: selectedFile.size,
       file_type: selectedFile.type,
       file_url: fileUrl,
-      uploaded_by: user?.id,
       is_confidential: formData.is_confidential,
-      tags: tagsArray,
       version: 1
-    }])
+    }
+
+    // Only add optional fields if they have values
+    if (formData.category_id) insertData.category_id = formData.category_id
+    if (formData.client_id) insertData.client_id = formData.client_id
+    if (formData.matter_id) insertData.matter_id = formData.matter_id
+    if (tagsArray.length) insertData.tags = tagsArray
+    if (userData?.id) insertData.uploaded_by = userData.id
+
+    console.log('Inserting document:', insertData)
+
+    const { error } = await supabase
+      .from('documents')
+      .insert([insertData])
 
     if (error) {
       alert('Error: ' + error.message)
@@ -239,6 +254,7 @@ export default function DocumentsPage() {
   }
 
   function formatFileSize(bytes: number) {
+    if (!bytes) return '0 B'
     if (bytes < 1024) return bytes + ' B'
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
@@ -290,7 +306,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
@@ -303,12 +319,21 @@ export default function DocumentsPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-gray-500">Categories</p>
+                <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
+              </div>
+              <FolderIcon className="h-8 w-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-500">Total Size</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatFileSize(documents.reduce((s, d) => s + (d.file_size || 0), 0))}
                 </p>
               </div>
-              <FolderIcon className="h-8 w-8 text-blue-500" />
+              <FolderIcon className="h-8 w-8 text-green-500" />
             </div>
           </div>
         </div>
@@ -344,7 +369,7 @@ export default function DocumentsPage() {
                 <div className="p-4 space-y-2">
                   <p className="text-sm text-gray-600 line-clamp-2">{doc.description || 'No description'}</p>
                   <div className="flex justify-between text-xs text-gray-500">
-                    <span>{doc.file_name}</span>
+                    <span className="truncate max-w-[150px]">{doc.file_name}</span>
                     <span>{formatFileSize(doc.file_size)}</span>
                   </div>
                   {doc.clients && (
@@ -355,11 +380,16 @@ export default function DocumentsPage() {
                   )}
                   {doc.tags && doc.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
-                      {doc.tags.map((tag, idx) => (
+                      {doc.tags.slice(0, 3).map((tag, idx) => (
                         <span key={idx} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
                           #{tag}
                         </span>
                       ))}
+                      {doc.tags.length > 3 && (
+                        <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                          +{doc.tags.length - 3}
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-2">
@@ -432,7 +462,20 @@ export default function DocumentsPage() {
                 <label className="block text-sm font-medium mb-1">Client (Optional)</label>
                 <select
                   value={formData.client_id}
-                  onChange={(e) => setFormData({...formData, client_id: e.target.value, matter_id: ''})}
+                  onChange={(e) => {
+                    setFormData({...formData, client_id: e.target.value, matter_id: ''})
+                    // Fetch matters for selected client
+                    if (e.target.value) {
+                      supabase
+                        .from('matters')
+                        .select('id, title')
+                        .eq('client_id', e.target.value)
+                        .eq('status', 'active')
+                        .then(({ data }) => setMatters(data || []))
+                    } else {
+                      fetchMatters()
+                    }
+                  }}
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Client</option>
