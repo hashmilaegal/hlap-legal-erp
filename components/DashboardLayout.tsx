@@ -14,25 +14,17 @@ import {
   Bars3Icon,
   XMarkIcon,
   CurrencyRupeeIcon,
-  ScaleIcon,
-  FolderIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, color: 'text-blue-600' },
-  { name: 'Clients', href: '/clients', icon: UsersIcon, color: 'text-green-600' },
-  { name: 'Matters', href: '/matters', icon: ScaleIcon, color: 'text-purple-600' },
-  { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon, color: 'text-orange-600' },
-  { name: 'Time Tracking', href: '/time-entries', icon: ClockIcon, color: 'text-teal-600' },
-  { name: 'Reports', href: '/reports', icon: ChartBarIcon, color: 'text-red-600' },
-  { name: 'Trust Account', href: '/trust', icon: CurrencyRupeeIcon, color: 'text-emerald-600' },
-  { name: 'Documents', href: '/documents', icon: FolderIcon, color: 'text-indigo-600' },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, color: 'text-gray-600' },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Clients', href: '/clients', icon: UsersIcon },
+  { name: 'Matters', href: '/matters', icon: BriefcaseIcon },
+  { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -42,12 +34,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    toast.success('Logged out successfully')
     router.push('/login')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-100">
       {/* Mobile sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
@@ -74,23 +65,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 shadow-xl">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
                   <div className="flex h-16 shrink-0 items-center">
-                    <h1 className="logo-text text-2xl">HLAP LEGAL</h1>
+                    <h1 className="text-xl font-bold text-gray-900">HLAP LEGAL</h1>
                   </div>
                   <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-2">
+                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
                       <li>
-                        <ul role="list" className="space-y-1">
+                        <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
                               <Link
                                 href={item.href}
                                 onClick={() => setSidebarOpen(false)}
-                                className={`sidebar-link ${pathname === item.href ? 'active' : ''}`}
+                                className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                                  pathname === item.href
+                                    ? 'bg-gray-50 text-blue-600'
+                                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                                }`}
                               >
-                                <item.icon className={`h-5 w-5 ${item.color}`} />
-                                <span className="text-sm font-medium">{item.name}</span>
+                                <item.icon className="h-6 w-6 shrink-0" />
+                                {item.name}
                               </Link>
                             </li>
                           ))}
@@ -99,9 +94,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <li className="-mx-6 mt-auto">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
+                          className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 w-full"
                         >
-                          <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                          <ArrowRightOnRectangleIcon className="h-6 w-6" />
                           Logout
                         </button>
                       </li>
@@ -116,36 +111,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-lg border-r border-gray-100">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
           <div className="flex h-16 shrink-0 items-center">
-            <div>
-              <h1 className="logo-text text-2xl">HLAP LEGAL</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Enterprise ERP Suite</p>
-            </div>
+            <h1 className="text-xl font-bold text-gray-900">HLAP LEGAL</h1>
           </div>
           <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-2">
+            <ul role="list" className="flex flex-1 flex-col gap-y-7">
               <li>
-                <ul role="list" className="space-y-1">
+                <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className={`sidebar-link ${pathname === item.href ? 'active' : ''}`}
+                        className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                          pathname === item.href
+                            ? 'bg-gray-50 text-blue-600'
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                        }`}
                       >
-                        <item.icon className={`h-5 w-5 ${item.color}`} />
-                        <span className="text-sm font-medium">{item.name}</span>
+                        <item.icon className="h-6 w-6 shrink-0" />
+                        {item.name}
                       </Link>
                     </li>
                   ))}
                 </ul>
               </li>
-              <li className="-mx-6 mt-auto pt-4 border-t border-gray-100">
+              <li className="-mx-6 mt-auto">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 transition-all duration-200 w-full rounded-lg"
+                  className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 w-full"
                 >
-                  <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                  <ArrowRightOnRectangleIcon className="h-6 w-6" />
                   Logout
                 </button>
               </li>
@@ -156,7 +152,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <div className="lg:pl-72">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -166,25 +162,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1 items-center">
-              {/* Welcome message */}
-              <div className="hidden sm:block">
-                <p className="text-sm text-gray-500">Welcome back,</p>
-                <p className="text-sm font-semibold text-gray-900">Administrator</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <div className="h-8 w-px bg-gray-200" />
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-[#1e3a5f] to-[#2c4a7a] flex items-center justify-center text-white text-sm font-bold">
-                  A
-                </div>
-              </div>
-            </div>
+            <div className="flex flex-1" />
           </div>
         </div>
 
-        <main className="py-8">
+        <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
