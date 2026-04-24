@@ -81,6 +81,13 @@ export default function TimeEntriesPage() {
 
   async function handleCreateEntry(e: React.FormEvent) {
     e.preventDefault()
+    
+    // Validate matter is selected
+    if (!formData.matter_id) {
+      alert('Please select a matter')
+      return
+    }
+    
     const totalAmount = formData.hours * formData.hourly_rate
 
     const { error } = await supabase.from('time_entries').insert([{
@@ -98,7 +105,7 @@ export default function TimeEntriesPage() {
     if (error) {
       alert('Error: ' + error.message)
     } else {
-      alert('Time entry created!')
+      alert('Time entry created successfully!')
       setShowModal(false)
       setFormData({
         matter_id: '',
@@ -265,11 +272,11 @@ export default function TimeEntriesPage() {
                   <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(entry.status)}`}>{entry.status}</span></td>
                   {canApprove && entry.status === 'pending' && (
                     <td className="px-4 py-3">
-                      <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 mr-2">✓</button>
-                      <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600">✗</button>
-                    </td>
+                      <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 mr-2 hover:text-green-800">✓ Approve</button>
+                      <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600 hover:text-red-800">✗ Reject</button>
+                     </td>
                   )}
-                </tr>
+                 </tr>
               ))}
             </tbody>
           </table>
@@ -281,16 +288,63 @@ export default function TimeEntriesPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Log Time</h2>
             <form onSubmit={handleCreateEntry} className="space-y-4">
-              <select required value={formData.matter_id} onChange={e => setFormData({...formData, matter_id: e.target.value})} className="w-full p-2 border rounded">
-                <option value="">Select Matter</option>
-                {matters.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
-              </select>
-              <input type="date" value={formData.entry_date} onChange={e => setFormData({...formData, entry_date: e.target.value})} className="w-full p-2 border rounded" />
-              <input type="number" step="0.5" placeholder="Hours" value={formData.hours} onChange={e => setFormData({...formData, hours: parseFloat(e.target.value)})} className="w-full p-2 border rounded" required />
-              <textarea placeholder="Description" rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-2 border rounded" required />
-              <div className="flex gap-3">
-                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded">Save</button>
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded">Cancel</button>
+              <div>
+                <label className="block text-sm font-medium mb-1">Matter *</label>
+                <select 
+                  required 
+                  value={formData.matter_id} 
+                  onChange={e => setFormData({...formData, matter_id: e.target.value})} 
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">-- Select a Matter --</option>
+                  {matters.map(m => <option key={m.id} value={m.id}>{m.title} ({m.matter_number})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Date *</label>
+                <input 
+                  type="date" 
+                  value={formData.entry_date} 
+                  onChange={e => setFormData({...formData, entry_date: e.target.value})} 
+                  className="w-full p-2 border rounded" 
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Hours *</label>
+                <input 
+                  type="number" 
+                  step="0.5" 
+                  placeholder="Hours" 
+                  value={formData.hours} 
+                  onChange={e => setFormData({...formData, hours: parseFloat(e.target.value)})} 
+                  className="w-full p-2 border rounded" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Hourly Rate (₹)</label>
+                <input 
+                  type="number" 
+                  value={formData.hourly_rate} 
+                  onChange={e => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})} 
+                  className="w-full p-2 border rounded" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description *</label>
+                <textarea 
+                  placeholder="Describe the work done..." 
+                  rows={3} 
+                  value={formData.description} 
+                  onChange={e => setFormData({...formData, description: e.target.value})} 
+                  className="w-full p-2 border rounded" 
+                  required 
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded hover:bg-[#d4a017]">Save Entry</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300">Cancel</button>
               </div>
             </form>
           </div>
