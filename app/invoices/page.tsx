@@ -4,27 +4,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
-interface Invoice {
-  id: string
-  invoice_number: string
-  client_id: string
-  matter_id: string
-  invoice_date: string
-  due_date: string
-  total_amount: number
-  amount_paid: number
-  status: string
-  clients?: { name: string }
-  matters?: { title: string }
-}
-
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [clients, setClients] = useState<any[]>([])
-  const [matters, setMatters] = useState<any[]>([])
+  const [invoices, setInvoices] = useState([])
+  const [clients, setClients] = useState([])
+  const [matters, setMatters] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState(null)
   const router = useRouter()
   
   const [formData, setFormData] = useState({
@@ -60,7 +46,9 @@ export default function InvoicesPage() {
       `)
       .order('created_at', { ascending: false })
 
-    if (!error) setInvoices(data || [])
+    if (!error && data) {
+      setInvoices(data)
+    }
     setLoading(false)
   }
 
@@ -69,7 +57,7 @@ export default function InvoicesPage() {
     if (data) setClients(data)
   }
 
-  async function fetchMatters(clientId: string) {
+  async function fetchMatters(clientId) {
     if (!clientId) {
       setMatters([])
       return
@@ -81,10 +69,9 @@ export default function InvoicesPage() {
     if (data) setMatters(data)
   }
 
-  async function handleCreateInvoice(e: React.FormEvent) {
+  async function handleCreateInvoice(e) {
     e.preventDefault()
     
-    // Calculate totals
     let subtotal = 0
     let taxAmount = 0
     
@@ -97,7 +84,7 @@ export default function InvoicesPage() {
     const totalAmount = subtotal + taxAmount
     const invoiceNumber = `INV-${Date.now()}`
     
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('invoices')
       .insert([{
         invoice_number: invoiceNumber,
@@ -110,7 +97,6 @@ export default function InvoicesPage() {
         total_amount: totalAmount,
         status: 'sent'
       }])
-      .select()
 
     if (error) {
       alert('Error: ' + error.message)
@@ -135,18 +121,18 @@ export default function InvoicesPage() {
     })
   }
 
-  const updateItem = (index: number, field: string, value: any) => {
+  const updateItem = (index, field, value) => {
     const newItems = [...formData.items]
     newItems[index][field] = value
     setFormData({ ...formData, items: newItems })
   }
 
-  const removeItem = (index: number) => {
+  const removeItem = (index) => {
     const newItems = formData.items.filter((_, i) => i !== index)
     setFormData({ ...formData, items: newItems })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'paid': return 'bg-green-100 text-green-800'
       case 'sent': return 'bg-blue-100 text-blue-800'
@@ -160,7 +146,7 @@ export default function InvoicesPage() {
     router.push('/')
   }
 
-  if (!user) return null
+  if (!user) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -220,7 +206,7 @@ export default function InvoicesPage() {
                       <td className="px-6 py-4 text-sm">{inv.clients?.name || '-'}</td>
                       <td className="px-6 py-4 text-sm">{inv.matters?.title || '-'}</td>
                       <td className="px-6 py-4 text-sm">{new Date(inv.invoice_date).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-sm font-medium">₹{inv.total_amount.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm font-medium">₹{inv.total_amount?.toLocaleString() || 0}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(inv.status)}`}>
                           {inv.status}
