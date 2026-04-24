@@ -51,7 +51,10 @@ export default function InvoicesPage() {
         matters (title, matter_type)
       `)
       .order('created_at', { ascending: false })
-    if (data) setInvoices(data)
+    if (data) {
+      console.log('Fetched invoices:', data)
+      setInvoices(data)
+    }
     setLoading(false)
   }
 
@@ -215,9 +218,9 @@ export default function InvoicesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-gray-50 cursor-pointer">
+                    <tr key={inv.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium text-purple-600">
-                        <Link href={`/invoices/${inv.id}`} className="hover:underline">
+                        <Link href={`/invoices/${inv.id}`} className="hover:underline cursor-pointer">
                           {inv.invoice_number}
                         </Link>
                        </td>
@@ -244,7 +247,7 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Create Invoice Modal - Same as before */}
+      {/* Create Invoice Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg w-full max-w-2xl m-4 p-6">
