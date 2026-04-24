@@ -32,7 +32,6 @@ export default function TimeEntriesPage() {
       return
     }
     
-    // Get user ID from users table
     const { data: userData } = await supabase
       .from('users')
       .select('id')
@@ -43,8 +42,6 @@ export default function TimeEntriesPage() {
       setUserId(userData.id)
       fetchEntries()
       fetchMatters()
-    } else {
-      console.error('User not found in users table')
     }
   }
 
@@ -130,7 +127,7 @@ export default function TimeEntriesPage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map(entry => (
+              {entries.map((entry) => (
                 <tr key={entry.id} className="border-t">
                   <td className="px-4 py-3">{new Date(entry.entry_date).toLocaleDateString()}</td>
                   <td className="px-4 py-3">{entry.matters?.title || '-'}</td>
@@ -144,7 +141,7 @@ export default function TimeEntriesPage() {
                       'bg-gray-100 text-gray-800'
                     }`}>{entry.status}</span>
                   </td>
-                </td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -163,7 +160,9 @@ export default function TimeEntriesPage() {
                 className="w-full p-2 border rounded"
               >
                 <option value="">Select Matter</option>
-                {matters.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                {matters.map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
               </select>
               <input type="date" value={formData.entry_date} onChange={e => setFormData({...formData, entry_date: e.target.value})} className="w-full p-2 border rounded" required />
               <input type="number" step="0.5" placeholder="Hours" value={formData.hours} onChange={e => setFormData({...formData, hours: parseFloat(e.target.value)})} className="w-full p-2 border rounded" required />
