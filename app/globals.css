@@ -4,63 +4,62 @@
 
 @layer base {
   :root {
-    --primary: #1e3a5f;
-    --primary-light: #2c4a7a;
-    --primary-dark: #0f2a44;
-    --secondary: #b8860b;
-    --secondary-light: #d4a017;
-    --accent: #8b0000;
-    --success: #166534;
-    --warning: #b45309;
-    --danger: #dc2626;
-    --gray-light: #f8fafc;
-    --gray-border: #e2e8f0;
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --gold-dark: #8b6914;
+    --gray-100: #f8f7f5;
+    --gray-200: #eeece8;
+    --gray-400: #999690;
+    --gray-600: #5a5855;
+    --gray-800: #2a2926;
+    --navy: #0d1b2a;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Montserrat', sans-serif;
   }
   
   body {
-    @apply bg-gradient-to-br from-gray-50 to-gray-100;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-white text-gray-800;
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
   }
 }
 
 @layer components {
   /* Premium Button Styles */
   .btn-primary {
-    @apply bg-gradient-to-r from-[#1e3a5f] to-[#2c4a7a] text-white px-6 py-2.5 rounded-lg 
-           hover:shadow-lg hover:from-[#2c4a7a] hover:to-[#1e3a5f] transition-all duration-300 
+    @apply bg-[#c9a84c] text-black px-6 py-2.5 rounded-lg 
+           hover:bg-[#e8d5a3] transition-all duration-300 
            font-medium text-sm shadow-md;
   }
   
   .btn-secondary {
-    @apply bg-gradient-to-r from-[#b8860b] to-[#d4a017] text-white px-6 py-2.5 rounded-lg 
-           hover:shadow-lg hover:from-[#d4a017] hover:to-[#b8860b] transition-all duration-300 
-           font-medium text-sm shadow-md;
-  }
-  
-  .btn-outline {
-    @apply border-2 border-[#1e3a5f] text-[#1e3a5f] px-6 py-2 rounded-lg 
-           hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 font-medium text-sm;
+    @apply bg-black text-[#c9a84c] border border-[#c9a84c] px-6 py-2.5 rounded-lg 
+           hover:bg-[#c9a84c] hover:text-black transition-all duration-300 
+           font-medium text-sm;
   }
   
   .btn-danger {
-    @apply bg-gradient-to-r from-[#8b0000] to-[#dc2626] text-white px-4 py-2 rounded-lg 
-           hover:shadow-md transition-all duration-300 text-sm;
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700;
   }
   
   /* Premium Card Styles */
   .card-premium {
-    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 
            border border-gray-100 overflow-hidden;
-  }
-  
-  .card-gradient {
-    @apply bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-md border border-gray-100;
   }
   
   /* Form Input Styles */
   .form-input {
     @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none 
-           focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent 
+           focus:ring-2 focus:ring-[#c9a84c] focus:border-transparent 
            transition-all duration-200 bg-gray-50 hover:bg-white;
   }
   
@@ -73,7 +72,7 @@
     @apply w-full text-sm;
   }
   
-  .table-premium thead {
+  .table-premium thead tr {
     @apply bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200;
   }
   
@@ -92,28 +91,24 @@
   /* Stats Card */
   .stat-card {
     @apply bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md 
-           border-l-4 border-[#1e3a5f] hover:shadow-lg transition-all duration-300;
+           border-l-4 border-[#c9a84c] hover:shadow-lg transition-all duration-300;
   }
   
   /* Badge Styles */
   .badge-success {
-    @apply bg-gradient-to-r from-green-50 to-green-100 text-green-700 px-3 py-1 
-           rounded-full text-xs font-semibold border border-green-200;
+    @apply bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-semibold border border-green-200;
   }
   
   .badge-warning {
-    @apply bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 px-3 py-1 
-           rounded-full text-xs font-semibold border border-yellow-200;
+    @apply bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold border border-yellow-200;
   }
   
   .badge-danger {
-    @apply bg-gradient-to-r from-red-50 to-red-100 text-red-700 px-3 py-1 
-           rounded-full text-xs font-semibold border border-red-200;
+    @apply bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-semibold border border-red-200;
   }
   
   .badge-info {
-    @apply bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1 
-           rounded-full text-xs font-semibold border border-blue-200;
+    @apply bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200;
   }
   
   /* Sidebar Styles */
@@ -122,17 +117,45 @@
   }
   
   .sidebar-link:hover {
-    @apply bg-gradient-to-r from-gray-100 to-transparent text-[#1e3a5f];
+    @apply bg-gradient-to-r from-gray-100 to-transparent text-[#c9a84c];
   }
   
   .sidebar-link.active {
-    @apply bg-gradient-to-r from-[#1e3a5f]/10 to-transparent text-[#1e3a5f] font-semibold 
-           border-r-4 border-[#1e3a5f];
+    @apply bg-gradient-to-r from-[#c9a84c]/10 to-transparent text-[#c9a84c] font-semibold 
+           border-r-4 border-[#c9a84c];
   }
   
   /* Logo Styles */
   .logo-text {
-    @apply text-2xl font-bold bg-gradient-to-r from-[#1e3a5f] to-[#b8860b] 
-           bg-clip-text text-transparent;
+    @apply text-2xl font-bold;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--black) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
+  
+  /* Gold Accent */
+  .gold-accent {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dark);
 }
