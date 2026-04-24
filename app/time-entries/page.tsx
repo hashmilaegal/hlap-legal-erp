@@ -20,9 +20,9 @@ export default function TimeEntriesPage() {
   const [user, setUser] = useState<any>(null)
   const [userRole, setUserRole] = useState<string>('')
   const [userId, setUserId] = useState<string>('')
+  const [errorMsg, setErrorMsg] = useState('')
   const router = useRouter()
   
-  // Initialize with today's date in YYYY-MM-DD format
   const today = new Date()
   const formattedDate = today.toISOString().split('T')[0]
   
@@ -80,30 +80,34 @@ export default function TimeEntriesPage() {
       .select('id, title, matter_number, client_id')
       .eq('status', 'active')
       .limit(100)
-    if (data) setMatters(data)
+    if (data) {
+      console.log('Fetched matters:', data)
+      setMatters(data)
+    }
   }
 
   async function handleCreateEntry(e: React.FormEvent) {
     e.preventDefault()
+    setErrorMsg('')
+    
+    console.log('Form Data before validation:', formData)
+    console.log('Selected matter_id:', formData.matter_id)
     
     if (!formData.matter_id || formData.matter_id === '') {
-      alert('Please select a matter')
+      setErrorMsg('Please select a matter')
+      alert('Please select a matter from the dropdown')
       return
     }
     
     if (!formData.description || formData.description.trim() === '') {
+      setErrorMsg('Please enter a description')
       alert('Please enter a description')
       return
     }
     
     if (formData.hours <= 0) {
+      setErrorMsg('Hours must be greater than 0')
       alert('Hours must be greater than 0')
-      return
-    }
-    
-    // Validate date format
-    if (!formData.entry_date) {
-      alert('Please select a date')
       return
     }
     
@@ -121,13 +125,19 @@ export default function TimeEntriesPage() {
       status: 'pending'
     }
 
-    const { error } = await supabase
+    console.log('Submitting entry data:', entryData)
+
+    const { data, error } = await supabase
       .from('time_entries')
       .insert([entryData])
+      .select()
 
     if (error) {
+      console.error('Supabase error:', error)
+      setErrorMsg(error.message)
       alert('Error: ' + error.message)
     } else {
+      console.log('Success! Response:', data)
       alert('Time entry created successfully!')
       setShowModal(false)
       setFormData({
@@ -299,13 +309,13 @@ export default function TimeEntriesPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading...</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8">Loading...</td></tr>
                 ) : entries.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">No time entries yet.</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8">No time entries yet.</td></tr>
                 ) : (
                   entries.map(entry => (
                     <tr key={entry.id} className="border-t">
-                      <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString('en-IN')}</td>
+                      <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-sm">{entry.matters?.title || '-'}</td>
                       <td className="px-4 py-3 text-sm">{entry.description}</td>
                       <td className="px-4 py-3 text-sm">{entry.hours}h</td>
@@ -331,20 +341,25 @@ export default function TimeEntriesPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Log Time</h2>
+            {errorMsg && <p className="text-red-600 text-sm mb-3">{errorMsg}</p>}
             <form onSubmit={handleCreateEntry} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Matter *</label>
                 <select 
                   required 
                   value={formData.matter_id} 
-                  onChange={e => setFormData({...formData, matter_id: e.target.value})} 
+                  onChange={e => {
+                    console.log('Selected matter ID:', e.target.value)
+                    setFormData({...formData, matter_id: e.target.value})
+                  }} 
                   className="w-full p-2 border rounded"
                 >
                   <option value="">-- Select a Matter --</option>
                   {matters.map(m => (
-                    <option key={m.id} value={m.id}>{m.title}</option>
+                    <option key={m.id} value={m.id}>{m.title} ({m.matter_number})</option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-400 mt-1">Selected ID: {formData.matter_id || 'none'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Date *</label>
@@ -376,6 +391,7 @@ export default function TimeEntriesPage() {
                   onChange={e => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})} 
                   className="w-full p-2 border rounded" 
                 />
+                <p className="text-xs text-gray-400 mt-1">Rate per hour in Indian Rupees</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Description *</label>
@@ -385,6 +401,7 @@ export default function TimeEntriesPage() {
                   onChange={e => setFormData({...formData, description: e.target.value})} 
                   className="w-full p-2 border rounded" 
                   required 
+                  placeholder="Describe the work done..."
                 />
               </div>
               <div className="flex gap-3 pt-2">
