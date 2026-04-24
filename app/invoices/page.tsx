@@ -81,6 +81,12 @@ export default function InvoicesPage() {
   async function handleCreateInvoice(e: React.FormEvent) {
     e.preventDefault()
     
+    // Validate required fields
+    if (!formData.client_id) {
+      alert('Please select a client')
+      return
+    }
+    
     let subtotal = 0
     let taxAmount = 0
     
@@ -93,19 +99,26 @@ export default function InvoicesPage() {
     const totalAmount = subtotal + taxAmount
     const invoiceNumber = `INV-${Date.now()}`
     
+    // Prepare data - convert empty strings to null for UUID fields
+    const invoiceData: any = {
+      invoice_number: invoiceNumber,
+      client_id: formData.client_id,
+      invoice_date: formData.invoice_date,
+      due_date: formData.due_date,
+      subtotal: subtotal,
+      tax_amount: taxAmount,
+      total_amount: totalAmount,
+      status: 'sent'
+    }
+    
+    // Only add matter_id if it has a value
+    if (formData.matter_id && formData.matter_id !== '') {
+      invoiceData.matter_id = formData.matter_id
+    }
+    
     const { error } = await supabase
       .from('invoices')
-      .insert([{
-        invoice_number: invoiceNumber,
-        client_id: formData.client_id,
-        matter_id: formData.matter_id,
-        invoice_date: formData.invoice_date,
-        due_date: formData.due_date,
-        subtotal: subtotal,
-        tax_amount: taxAmount,
-        total_amount: totalAmount,
-        status: 'sent'
-      }])
+      .insert([invoiceData])
 
     if (error) {
       alert('Error: ' + error.message)
@@ -224,7 +237,7 @@ export default function InvoicesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              <tr>
             )}
           </div>
         </div>
@@ -253,13 +266,13 @@ export default function InvoicesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Matter</label>
+                  <label className="block text-sm font-medium mb-1">Matter (Optional)</label>
                   <select
                     value={formData.matter_id}
                     onChange={(e) => setFormData({...formData, matter_id: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="">Select Matter</option>
+                    <option value="">No Matter (General Invoice)</option>
                     {matters.map((m: any) => <option key={m.id} value={m.id}>{m.title}</option>)}
                   </select>
                 </div>
