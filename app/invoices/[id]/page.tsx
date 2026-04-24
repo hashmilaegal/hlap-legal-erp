@@ -4,36 +4,55 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
+export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [invoice, setInvoice] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    if (params.id) {
+    async function getParams() {
+      const resolvedParams = await params
+      setInvoiceId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
+
+  useEffect(() => {
+    if (invoiceId) {
       fetchInvoice()
     }
-  }, [params.id])
+  }, [invoiceId])
 
   async function fetchInvoice() {
-    const { data, error } = await supabase
-      .from('invoices')
-      .select(`
-        *,
-        clients (id, name, email, phone, address, gst_number),
-        matters (id, title, matter_number, matter_type)
-      `)
-      .eq('id', params.id)
-      .single()
+    try {
+      console.log('Fetching invoice with ID:', invoiceId)
+      
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(`
+          *,
+          clients (id, name, email, phone, address, gst_number),
+          matters (id, title, matter_number, matter_type)
+        `)
+        .eq('id', invoiceId)
+        .single()
 
-    if (error) {
-      console.error('Error:', error)
-      alert('Invoice not found')
+      if (error) {
+        console.error('Supabase error:', error)
+        alert('Invoice not found: ' + error.message)
+        router.push('/invoices')
+      } else {
+        console.log('Invoice data:', data)
+        setInvoice(data)
+      }
+    } catch (err) {
+      console.error('Fetch error:', err)
+      alert('Error loading invoice')
       router.push('/invoices')
-    } else {
-      setInvoice(data)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handlePrint = () => {
@@ -53,7 +72,10 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading invoice...</div>
+        <div className="text-center">
+          <div className="text-gray-600">Loading invoice...</div>
+          <div className="text-sm text-gray-400 mt-2">Please wait</div>
+        </div>
       </div>
     )
   }
@@ -61,7 +83,15 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   if (!invoice) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Invoice not found</div>
+        <div className="text-center">
+          <div className="text-red-600">Invoice not found</div>
+          <button 
+            onClick={() => router.push('/invoices')}
+            className="mt-4 text-blue-600 underline"
+          >
+            Back to Invoices
+          </button>
+        </div>
       </div>
     )
   }
