@@ -3,17 +3,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 type UserType = {
   id: string
   email: string
-}
-
-type InvoiceItem = {
-  description: string
-  quantity: number
-  unit_price: number
-  tax_rate: number
 }
 
 export default function InvoicesPage() {
@@ -30,7 +24,7 @@ export default function InvoicesPage() {
     matter_id: '',
     invoice_date: new Date().toISOString().split('T')[0],
     due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-    items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 18 }] as InvoiceItem[]
+    items: [{ description: 'Legal Services', quantity: 1, unit_price: 0, tax_rate: 18 }]
   })
 
   useEffect(() => {
@@ -76,11 +70,7 @@ export default function InvoicesPage() {
       .select('id, title, matter_type, matter_number')
       .eq('client_id', clientId)
       .eq('status', 'active')
-      .order('matter_type', { ascending: true })
-    if (data) {
-      // Group matters by type for display
-      setMatters(data)
-    }
+    if (data) setMatters(data)
   }
 
   async function handleCreateInvoice(e: React.FormEvent) {
@@ -120,9 +110,7 @@ export default function InvoicesPage() {
       status: 'sent'
     }
     
-    const { error } = await supabase
-      .from('invoices')
-      .insert([invoiceData])
+    const { error } = await supabase.from('invoices').insert([invoiceData])
 
     if (error) {
       alert('Error: ' + error.message)
@@ -134,7 +122,7 @@ export default function InvoicesPage() {
         matter_id: '',
         invoice_date: new Date().toISOString().split('T')[0],
         due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-        items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 18 }]
+        items: [{ description: 'Legal Services', quantity: 1, unit_price: 0, tax_rate: 18 }]
       })
       fetchInvoices()
     }
@@ -147,9 +135,9 @@ export default function InvoicesPage() {
     })
   }
 
-  const updateItem = (index: number, field: keyof InvoiceItem, value: string | number) => {
+  const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...formData.items]
-    newItems[index] = { ...newItems[index], [field]: value }
+    newItems[index][field] = value
     setFormData({ ...formData, items: newItems })
   }
 
@@ -200,7 +188,7 @@ export default function InvoicesPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold">Invoices</h2>
-            <p className="text-gray-600">Manage client billing and payments</p>
+            <p className="text-gray-600">Click on any invoice number to view details and print</p>
           </div>
           <button onClick={() => setShowModal(true)} className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
             + Create Invoice
@@ -227,8 +215,12 @@ export default function InvoicesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-purple-600">{inv.invoice_number}</td>
+                    <tr key={inv.id} className="hover:bg-gray-50 cursor-pointer">
+                      <td className="px-6 py-4 text-sm font-medium text-purple-600">
+                        <Link href={`/invoices/${inv.id}`} className="hover:underline">
+                          {inv.invoice_number}
+                        </Link>
+                       </td>
                       <td className="px-6 py-4 text-sm">{inv.clients?.name || '-'}</td>
                       <td className="px-6 py-4 text-sm">
                         {inv.matters?.title || '-'}
@@ -252,7 +244,7 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Create Invoice Modal */}
+      {/* Create Invoice Modal - Same as before */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg w-full max-w-2xl m-4 p-6">
@@ -283,20 +275,12 @@ export default function InvoicesPage() {
                     disabled={!formData.client_id}
                   >
                     <option value="">-- No Matter (General Invoice) --</option>
-                    {matters.length === 0 && formData.client_id && (
-                      <option disabled>No matters found for this client</option>
-                    )}
                     {matters.map((m: any) => (
                       <option key={m.id} value={m.id}>
-                        [{m.matter_type || 'General'}] {m.title} ({m.matter_number})
+                        [{m.matter_type || 'General'}] {m.title}
                       </option>
                     ))}
                   </select>
-                  {formData.client_id && matters.length === 0 && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      No matters found. Create a matter first in the Matters page.
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -316,8 +300,8 @@ export default function InvoicesPage() {
                 <div className="space-y-2">
                   {formData.items.map((item, idx) => (
                     <div key={idx} className="grid grid-cols-12 gap-2">
-                      <input type="text" placeholder="Description (e.g., Legal Consultation)" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} className="col-span-5 px-3 py-2 border rounded-lg text-sm" />
-                      <input type="number" placeholder="Hours/Qty" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value))} className="col-span-2 px-3 py-2 border rounded-lg text-sm" />
+                      <input type="text" placeholder="Description" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} className="col-span-5 px-3 py-2 border rounded-lg text-sm" />
+                      <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value))} className="col-span-2 px-3 py-2 border rounded-lg text-sm" />
                       <input type="number" placeholder="Rate (₹)" value={item.unit_price} onChange={(e) => updateItem(idx, 'unit_price', parseFloat(e.target.value))} className="col-span-2 px-3 py-2 border rounded-lg text-sm" />
                       <select value={item.tax_rate} onChange={(e) => updateItem(idx, 'tax_rate', parseFloat(e.target.value))} className="col-span-2 px-3 py-2 border rounded-lg text-sm">
                         <option value="0">0% GST</option>
