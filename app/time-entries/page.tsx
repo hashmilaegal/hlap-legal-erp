@@ -22,9 +22,13 @@ export default function TimeEntriesPage() {
   const [userId, setUserId] = useState<string>('')
   const router = useRouter()
   
+  // Initialize with today's date in YYYY-MM-DD format
+  const today = new Date()
+  const formattedDate = today.toISOString().split('T')[0]
+  
   const [formData, setFormData] = useState({
     matter_id: '',
-    entry_date: new Date().toISOString().split('T')[0],
+    entry_date: formattedDate,
     hours: 1,
     description: '',
     hourly_rate: 5000,
@@ -58,7 +62,7 @@ export default function TimeEntriesPage() {
   async function fetchTimeEntries(currentUserId: string, role: string) {
     let query = supabase
       .from('time_entries')
-      .select(`*, matters (title)`)
+      .select(`*, matters (title, matter_number)`)
       .order('entry_date', { ascending: false })
 
     if (role !== 'super_admin' && role !== 'finance_head' && role !== 'admin') {
@@ -97,6 +101,12 @@ export default function TimeEntriesPage() {
       return
     }
     
+    // Validate date format
+    if (!formData.entry_date) {
+      alert('Please select a date')
+      return
+    }
+    
     const totalAmount = formData.hours * formData.hourly_rate
 
     const entryData = {
@@ -111,21 +121,18 @@ export default function TimeEntriesPage() {
       status: 'pending'
     }
 
-    console.log('Submitting entry:', entryData)
-
     const { error } = await supabase
       .from('time_entries')
       .insert([entryData])
 
     if (error) {
-      console.error('Error details:', error)
       alert('Error: ' + error.message)
     } else {
       alert('Time entry created successfully!')
       setShowModal(false)
       setFormData({
         matter_id: '',
-        entry_date: new Date().toISOString().split('T')[0],
+        entry_date: formattedDate,
         hours: 1,
         description: '',
         hourly_rate: 5000,
@@ -172,7 +179,6 @@ export default function TimeEntriesPage() {
     }, {})
 
     let invoicesCreated = 0
-    let errors = 0
 
     for (const matterId in entriesByMatter) {
       const matterEntries = entriesByMatter[matterId]
@@ -205,8 +211,7 @@ export default function TimeEntriesPage() {
         .single()
 
       if (invoiceError) {
-        console.error('Invoice error:', invoiceError)
-        errors++
+        alert('Error creating invoice: ' + invoiceError.message)
         continue
       }
 
@@ -219,11 +224,7 @@ export default function TimeEntriesPage() {
       invoicesCreated++
     }
 
-    if (errors > 0) {
-      alert(`${invoicesCreated} invoice(s) created, ${errors} failed`)
-    } else {
-      alert(`${invoicesCreated} invoice(s) created successfully!`)
-    }
+    alert(`${invoicesCreated} invoice(s) created successfully!`)
     fetchTimeEntries(userId, userRole)
     router.push('/invoices')
   }
@@ -256,36 +257,36 @@ export default function TimeEntriesPage() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
+          <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-500 text-sm">Total Hours</p>
             <p className="text-2xl font-bold">{entries.reduce((s, e) => s + (e.hours || 0), 0).toFixed(1)}h</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
+          <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-500 text-sm">Pending</p>
             <p className="text-2xl font-bold text-yellow-600">{entries.filter(e => e.status === 'pending').length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
+          <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-500 text-sm">Approved</p>
             <p className="text-2xl font-bold text-green-600">{entries.filter(e => e.status === 'approved' && !e.invoice_id).length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
+          <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-500 text-sm">Value</p>
             <p className="text-2xl font-bold">₹{entries.filter(e => e.status === 'approved').reduce((s, e) => s + (e.total_amount || 0), 0).toLocaleString()}</p>
           </div>
         </div>
 
         {canBill && entries.filter(e => e.status === 'approved' && !e.invoice_id).length > 0 && (
-          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
-            <button onClick={handleBillToInvoice} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <button onClick={handleBillToInvoice} className="bg-green-600 text-white px-4 py-2 rounded-lg">
               Generate Invoices ({entries.filter(e => e.status === 'approved' && !e.invoice_id).length} entries)
             </button>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Date</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Matter</th>
@@ -296,34 +297,24 @@ export default function TimeEntriesPage() {
                   {canApprove && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Action</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {loading ? (
                   <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading...</td></tr>
                 ) : entries.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">No time entries yet. Click "Log Time" to start.</td></tr>
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">No time entries yet.</td></tr>
                 ) : (
                   entries.map(entry => (
-                    <tr key={entry.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-sm font-medium">{entry.matters?.title || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{entry.description}</td>
+                    <tr key={entry.id} className="border-t">
+                      <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString('en-IN')}</td>
+                      <td className="px-4 py-3 text-sm">{entry.matters?.title || '-'}</td>
+                      <td className="px-4 py-3 text-sm">{entry.description}</td>
                       <td className="px-4 py-3 text-sm">{entry.hours}h</td>
-                      <td className="px-4 py-3 text-sm font-medium">₹{entry.total_amount?.toLocaleString()}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(entry.status)}`}>
-                          {entry.status}
-                        </span>
-                      </td>
+                      <td className="px-4 py-3 text-sm">₹{entry.total_amount?.toLocaleString()}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(entry.status)}`}>{entry.status}</span></td>
                       {canApprove && entry.status === 'pending' && (
                         <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 hover:text-green-800" title="Approve">
-                              <CheckCircleIcon className="h-5 w-5" />
-                            </button>
-                            <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600 hover:text-red-800" title="Reject">
-                              <XCircleIcon className="h-5 w-5" />
-                            </button>
-                          </div>
+                          <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 mr-2">✓</button>
+                          <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600">✗</button>
                         </td>
                       )}
                     </tr>
@@ -347,11 +338,11 @@ export default function TimeEntriesPage() {
                   required 
                   value={formData.matter_id} 
                   onChange={e => setFormData({...formData, matter_id: e.target.value})} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]"
+                  className="w-full p-2 border rounded"
                 >
                   <option value="">-- Select a Matter --</option>
                   {matters.map(m => (
-                    <option key={m.id} value={m.id}>{m.title} ({m.matter_number})</option>
+                    <option key={m.id} value={m.id}>{m.title}</option>
                   ))}
                 </select>
               </div>
@@ -361,7 +352,7 @@ export default function TimeEntriesPage() {
                   type="date" 
                   value={formData.entry_date} 
                   onChange={e => setFormData({...formData, entry_date: e.target.value})} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
+                  className="w-full p-2 border rounded" 
                   required
                 />
               </div>
@@ -371,10 +362,9 @@ export default function TimeEntriesPage() {
                   type="number" 
                   step="0.5" 
                   min="0.5"
-                  placeholder="Hours" 
                   value={formData.hours} 
                   onChange={e => setFormData({...formData, hours: parseFloat(e.target.value)})} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
+                  className="w-full p-2 border rounded" 
                   required 
                 />
               </div>
@@ -384,23 +374,22 @@ export default function TimeEntriesPage() {
                   type="number" 
                   value={formData.hourly_rate} 
                   onChange={e => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
+                  className="w-full p-2 border rounded" 
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Description *</label>
                 <textarea 
-                  placeholder="Describe the work done..." 
                   rows={3} 
                   value={formData.description} 
                   onChange={e => setFormData({...formData, description: e.target.value})} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
+                  className="w-full p-2 border rounded" 
                   required 
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded-lg hover:bg-[#d4a017] transition">Save Entry</button>
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition">Cancel</button>
+                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded hover:bg-[#d4a017]">Save Entry</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300">Cancel</button>
               </div>
             </form>
           </div>
