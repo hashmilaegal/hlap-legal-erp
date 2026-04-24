@@ -61,7 +61,7 @@ export default function TimeEntriesPage() {
       .select(`*, matters (title)`)
       .order('entry_date', { ascending: false })
 
-    if (role !== 'super_admin' && role !== 'finance_head') {
+    if (role !== 'super_admin' && role !== 'finance_head' && role !== 'admin') {
       query = query.eq('lawyer_id', currentUserId)
     }
 
@@ -82,15 +82,24 @@ export default function TimeEntriesPage() {
   async function handleCreateEntry(e: React.FormEvent) {
     e.preventDefault()
     
-    // Validate matter is selected
-    if (!formData.matter_id) {
+    if (!formData.matter_id || formData.matter_id === '') {
       alert('Please select a matter')
+      return
+    }
+    
+    if (!formData.description || formData.description.trim() === '') {
+      alert('Please enter a description')
+      return
+    }
+    
+    if (formData.hours <= 0) {
+      alert('Hours must be greater than 0')
       return
     }
     
     const totalAmount = formData.hours * formData.hourly_rate
 
-    const { error } = await supabase.from('time_entries').insert([{
+    const entryData = {
       lawyer_id: userId,
       matter_id: formData.matter_id,
       entry_date: formData.entry_date,
@@ -100,9 +109,16 @@ export default function TimeEntriesPage() {
       total_amount: totalAmount,
       billable: formData.billable,
       status: 'pending'
-    }])
+    }
+
+    console.log('Submitting entry:', entryData)
+
+    const { error } = await supabase
+      .from('time_entries')
+      .insert([entryData])
 
     if (error) {
+      console.error('Error details:', error)
       alert('Error: ' + error.message)
     } else {
       alert('Time entry created successfully!')
@@ -121,9 +137,16 @@ export default function TimeEntriesPage() {
 
   async function handleApproveEntry(id: string, approve: boolean) {
     const status = approve ? 'approved' : 'rejected'
+    const updateData: any = { status: status }
+    
+    if (approve) {
+      updateData.approved_by = userId
+      updateData.approved_date = new Date().toISOString()
+    }
+    
     const { error } = await supabase
       .from('time_entries')
-      .update({ status: status })
+      .update(updateData)
       .eq('id', id)
 
     if (error) {
@@ -149,6 +172,7 @@ export default function TimeEntriesPage() {
     }, {})
 
     let invoicesCreated = 0
+    let errors = 0
 
     for (const matterId in entriesByMatter) {
       const matterEntries = entriesByMatter[matterId]
@@ -162,7 +186,7 @@ export default function TimeEntriesPage() {
 
       const taxAmount = subtotal * 0.18
       const totalAmount = subtotal + taxAmount
-      const invoiceNumber = `INV-TIME-${Date.now()}`
+      const invoiceNumber = `INV-TIME-${Date.now()}-${Math.floor(Math.random() * 1000)}`
 
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
@@ -180,7 +204,11 @@ export default function TimeEntriesPage() {
         .select()
         .single()
 
-      if (invoiceError) continue
+      if (invoiceError) {
+        console.error('Invoice error:', invoiceError)
+        errors++
+        continue
+      }
 
       for (const entry of matterEntries) {
         await supabase
@@ -191,7 +219,11 @@ export default function TimeEntriesPage() {
       invoicesCreated++
     }
 
-    alert(`${invoicesCreated} invoice(s) created!`)
+    if (errors > 0) {
+      alert(`${invoicesCreated} invoice(s) created, ${errors} failed`)
+    } else {
+      alert(`${invoicesCreated} invoice(s) created successfully!`)
+    }
     fetchTimeEntries(userId, userRole)
     router.push('/invoices')
   }
@@ -205,8 +237,8 @@ export default function TimeEntriesPage() {
     }
   }
 
-  const canApprove = userRole === 'super_admin' || userRole === 'finance_head'
-  const canBill = userRole === 'super_admin' || userRole === 'finance_head'
+  const canApprove = userRole === 'super_admin' || userRole === 'finance_head' || userRole === 'admin'
+  const canBill = userRole === 'super_admin' || userRole === 'finance_head' || userRole === 'admin'
 
   if (!user) return null
 
@@ -224,65 +256,86 @@ export default function TimeEntriesPage() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
             <p className="text-gray-500 text-sm">Total Hours</p>
-            <p className="text-2xl font-bold">{entries.reduce((s, e) => s + e.hours, 0).toFixed(1)}h</p>
+            <p className="text-2xl font-bold">{entries.reduce((s, e) => s + (e.hours || 0), 0).toFixed(1)}h</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
             <p className="text-gray-500 text-sm">Pending</p>
             <p className="text-2xl font-bold text-yellow-600">{entries.filter(e => e.status === 'pending').length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
             <p className="text-gray-500 text-sm">Approved</p>
             <p className="text-2xl font-bold text-green-600">{entries.filter(e => e.status === 'approved' && !e.invoice_id).length}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
             <p className="text-gray-500 text-sm">Value</p>
             <p className="text-2xl font-bold">₹{entries.filter(e => e.status === 'approved').reduce((s, e) => s + (e.total_amount || 0), 0).toLocaleString()}</p>
           </div>
         </div>
 
         {canBill && entries.filter(e => e.status === 'approved' && !e.invoice_id).length > 0 && (
-          <button onClick={handleBillToInvoice} className="bg-green-600 text-white px-4 py-2 rounded-lg">
-            Generate Invoices ({entries.filter(e => e.status === 'approved' && !e.invoice_id).length} entries)
-          </button>
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-100">
+            <button onClick={handleBillToInvoice} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+              Generate Invoices ({entries.filter(e => e.status === 'approved' && !e.invoice_id).length} entries)
+            </button>
+          </div>
         )}
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs">Date</th>
-                <th className="px-4 py-3 text-left text-xs">Matter</th>
-                <th className="px-4 py-3 text-left text-xs">Description</th>
-                <th className="px-4 py-3 text-left text-xs">Hours</th>
-                <th className="px-4 py-3 text-left text-xs">Amount</th>
-                <th className="px-4 py-3 text-left text-xs">Status</th>
-                {canApprove && <th className="px-4 py-3 text-left text-xs">Action</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map(entry => (
-                <tr key={entry.id} className="border-t">
-                  <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-sm">{entry.matters?.title || '-'}</td>
-                  <td className="px-4 py-3 text-sm">{entry.description}</td>
-                  <td className="px-4 py-3 text-sm">{entry.hours}h</td>
-                  <td className="px-4 py-3 text-sm">₹{entry.total_amount?.toLocaleString()}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(entry.status)}`}>{entry.status}</span></td>
-                  {canApprove && entry.status === 'pending' && (
-                    <td className="px-4 py-3">
-                      <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 mr-2 hover:text-green-800">✓ Approve</button>
-                      <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600 hover:text-red-800">✗ Reject</button>
-                     </td>
-                  )}
-                 </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Matter</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Description</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Hours</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
+                  {canApprove && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Action</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {loading ? (
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">Loading...</td></tr>
+                ) : entries.length === 0 ? (
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-500">No time entries yet. Click "Log Time" to start.</td></tr>
+                ) : (
+                  entries.map(entry => (
+                    <tr key={entry.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">{new Date(entry.entry_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-sm font-medium">{entry.matters?.title || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{entry.description}</td>
+                      <td className="px-4 py-3 text-sm">{entry.hours}h</td>
+                      <td className="px-4 py-3 text-sm font-medium">₹{entry.total_amount?.toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(entry.status)}`}>
+                          {entry.status}
+                        </span>
+                      </td>
+                      {canApprove && entry.status === 'pending' && (
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            <button onClick={() => handleApproveEntry(entry.id, true)} className="text-green-600 hover:text-green-800" title="Approve">
+                              <CheckCircleIcon className="h-5 w-5" />
+                            </button>
+                            <button onClick={() => handleApproveEntry(entry.id, false)} className="text-red-600 hover:text-red-800" title="Reject">
+                              <XCircleIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
+      {/* Log Time Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -294,10 +347,12 @@ export default function TimeEntriesPage() {
                   required 
                   value={formData.matter_id} 
                   onChange={e => setFormData({...formData, matter_id: e.target.value})} 
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]"
                 >
                   <option value="">-- Select a Matter --</option>
-                  {matters.map(m => <option key={m.id} value={m.id}>{m.title} ({m.matter_number})</option>)}
+                  {matters.map(m => (
+                    <option key={m.id} value={m.id}>{m.title} ({m.matter_number})</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -306,7 +361,7 @@ export default function TimeEntriesPage() {
                   type="date" 
                   value={formData.entry_date} 
                   onChange={e => setFormData({...formData, entry_date: e.target.value})} 
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
                   required
                 />
               </div>
@@ -315,10 +370,11 @@ export default function TimeEntriesPage() {
                 <input 
                   type="number" 
                   step="0.5" 
+                  min="0.5"
                   placeholder="Hours" 
                   value={formData.hours} 
                   onChange={e => setFormData({...formData, hours: parseFloat(e.target.value)})} 
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
                   required 
                 />
               </div>
@@ -328,7 +384,7 @@ export default function TimeEntriesPage() {
                   type="number" 
                   value={formData.hourly_rate} 
                   onChange={e => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})} 
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
                 />
               </div>
               <div>
@@ -338,13 +394,13 @@ export default function TimeEntriesPage() {
                   rows={3} 
                   value={formData.description} 
                   onChange={e => setFormData({...formData, description: e.target.value})} 
-                  className="w-full p-2 border rounded" 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#c9a84c]" 
                   required 
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded hover:bg-[#d4a017]">Save Entry</button>
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300">Cancel</button>
+                <button type="submit" className="flex-1 bg-[#c9a84c] text-black py-2 rounded-lg hover:bg-[#d4a017] transition">Save Entry</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition">Cancel</button>
               </div>
             </form>
           </div>
