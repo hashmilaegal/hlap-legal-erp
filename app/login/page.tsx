@@ -50,24 +50,24 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="form-label">Email Address</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="form-input"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] focus:border-transparent bg-gray-50"
               placeholder="admin@hlapl.com"
               required
             />
           </div>
 
           <div>
-            <label className="form-label">Password</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="form-input"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a84c] focus:border-transparent bg-gray-50"
               placeholder="••••••••"
               required
             />
@@ -76,7 +76,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 disabled:opacity-50"
+            className="w-full bg-[#c9a84c] text-black px-6 py-3 rounded-lg hover:bg-[#e8d5a3] transition-all duration-300 font-medium text-sm disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
