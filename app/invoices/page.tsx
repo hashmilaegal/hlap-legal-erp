@@ -99,10 +99,16 @@ export default function InvoicesPage() {
     const totalAmount = subtotal + taxAmount
     const invoiceNumber = `INV-${Date.now()}`
     
-    // Prepare data - convert empty strings to null for UUID fields
-    const invoiceData: any = {
+    // Fix: Handle empty matter_id - convert to null
+    let matterIdValue = null
+    if (formData.matter_id && formData.matter_id !== '') {
+      matterIdValue = formData.matter_id
+    }
+    
+    const invoiceData = {
       invoice_number: invoiceNumber,
       client_id: formData.client_id,
+      matter_id: matterIdValue,
       invoice_date: formData.invoice_date,
       due_date: formData.due_date,
       subtotal: subtotal,
@@ -111,10 +117,7 @@ export default function InvoicesPage() {
       status: 'sent'
     }
     
-    // Only add matter_id if it has a value
-    if (formData.matter_id && formData.matter_id !== '') {
-      invoiceData.matter_id = formData.matter_id
-    }
+    console.log('Sending invoice data:', invoiceData)
     
     const { error } = await supabase
       .from('invoices')
@@ -122,6 +125,7 @@ export default function InvoicesPage() {
 
     if (error) {
       alert('Error: ' + error.message)
+      console.error('Insert error:', error)
     } else {
       alert('Invoice created successfully!')
       setShowModal(false)
@@ -237,7 +241,7 @@ export default function InvoicesPage() {
                     </tr>
                   ))}
                 </tbody>
-              <tr>
+              </table>
             )}
           </div>
         </div>
@@ -272,7 +276,7 @@ export default function InvoicesPage() {
                     onChange={(e) => setFormData({...formData, matter_id: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="">No Matter (General Invoice)</option>
+                    <option value="">-- No Matter --</option>
                     {matters.map((m: any) => <option key={m.id} value={m.id}>{m.title}</option>)}
                   </select>
                 </div>
