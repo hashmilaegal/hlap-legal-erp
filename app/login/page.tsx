@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { ScaleIcon } from '@heroicons/react/24/outline'
+import Logo from '@/components/Logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -31,15 +31,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0a] via-[#0d1b2a] to-[#0a0a0a]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#c9a84c]/20">
       <div className="relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl w-full max-w-md p-8 m-4">
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-[#c9a84c] to-[#8b6914] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <ScaleIcon className="h-10 w-10 text-white" />
+          <div className="flex justify-center mb-6">
+            <Logo variant="full" className="h-20 w-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 font-display">HLAPL</h1>
-          <p className="text-gray-500 mt-1">Hashmi Law Associates Pvt. Ltd.</p>
-          <p className="text-xs text-gray-400 mt-2">Enterprise Legal ERP Suite</p>
+          <p className="text-gray-500 mt-2">Hashmi Law Associates Pvt. Ltd.</p>
+          <p className="text-xs text-gray-400 mt-1">Enterprise Legal ERP Suite</p>
         </div>
 
         {error && (

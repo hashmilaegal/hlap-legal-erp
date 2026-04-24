@@ -12,13 +12,12 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon,
-  CurrencyRupeeIcon,
   ScaleIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import Logo from './Logo'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -41,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7f5]">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Mobile sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
@@ -54,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/80" />
+            <div className="fixed inset-0 bg-gray-900/80" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
@@ -68,9 +67,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#0a0a0a] px-6 pb-2">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 shadow-xl">
                   <div className="flex h-16 shrink-0 items-center">
-                    <h1 className="text-xl font-bold text-[#c9a84c]">HLAPL ERP</h1>
+                    <Logo variant="full" className="h-10 w-auto" />
                   </div>
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -84,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
                                   pathname === item.href
                                     ? 'bg-[#c9a84c]/10 text-[#c9a84c]'
-                                    : 'text-white/70 hover:text-[#c9a84c] hover:bg-white/5'
+                                    : 'text-gray-700 hover:text-[#c9a84c] hover:bg-gray-50'
                                 }`}
                               >
                                 <item.icon className="h-6 w-6 shrink-0" />
@@ -97,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <li className="-mx-6 mt-auto">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-400 hover:bg-red-500/10 hover:text-red-300 w-full rounded-lg"
+                          className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 w-full rounded-lg"
                         >
                           <ArrowRightOnRectangleIcon className="h-6 w-6" />
                           Logout
@@ -114,12 +113,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#0a0a0a] px-6 pb-4 shadow-xl">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 shadow-lg">
           <div className="flex h-16 shrink-0 items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-[#c9a84c] font-display">HLAPL</h1>
-              <p className="text-xs text-white/30 mt-0.5">Enterprise ERP Suite</p>
-            </div>
+            <Logo variant="full" className="h-12 w-auto" />
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-2">
@@ -131,8 +127,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         href={item.href}
                         className={`sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                           pathname === item.href
-                            ? 'bg-[#c9a84c]/10 text-[#c9a84c] border-r-2 border-[#c9a84c]'
-                            : 'text-white/60 hover:bg-white/5 hover:text-[#c9a84c]'
+                            ? 'bg-[#c9a84c]/10 text-[#c9a84c] border-r-4 border-[#c9a84c]'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-[#c9a84c]'
                         }`}
                       >
                         <item.icon className="h-5 w-5" />
@@ -142,10 +138,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   ))}
                 </ul>
               </li>
-              <li className="-mx-6 mt-auto pt-4 border-t border-white/10">
+              <li className="-mx-6 mt-auto pt-4 border-t border-gray-100">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 w-full rounded-lg"
+                  className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 transition-all duration-200 w-full rounded-lg"
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5" />
                   Logout
