@@ -24,8 +24,8 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Clients', href: '/clients', icon: UsersIcon },
   { name: 'Matters', href: '/matters', icon: ScaleIcon },
+  { name: 'Time & Billing', href: '/time-entries', icon: ClockIcon },
   { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon },
-  { name: 'Time Tracking', href: '/time-entries', icon: ClockIcon },
   { name: 'Reports', href: '/reports', icon: ChartBarIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
@@ -79,7 +79,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                   </div>
                   
-                  {/* Contact Info in Mobile Sidebar */}
                   <div className="bg-gray-50 rounded-lg p-3 mb-4">
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Contact</p>
                     <div className="space-y-2">
@@ -147,7 +146,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           
-          {/* Contact Information Section */}
           <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-4 mb-4 border border-gray-100">
             <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <div className="h-px w-4 bg-[#c9a84c]"></div>
