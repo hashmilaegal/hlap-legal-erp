@@ -17,7 +17,6 @@ import {
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Logo from './Logo'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -68,8 +67,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 shadow-xl">
-                  <div className="flex h-16 shrink-0 items-center">
-                    <Logo variant="full" className="h-10 w-auto" />
+                  <div className="flex h-20 shrink-0 flex-col justify-center border-b border-gray-100 mb-4">
+                    <h1 className="text-2xl font-bold text-gray-900">HLAPL</h1>
+                    <p className="text-xs text-gray-600 font-medium">Hashmi Law Associates</p>
+                    <p className="text-[11px] text-gray-500">Pvt. Ltd.</p>
+                    <p className="text-[10px] text-gray-400 mt-1">New Delhi · India</p>
                   </div>
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -93,7 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           ))}
                         </ul>
                       </li>
-                      <li className="-mx-6 mt-auto">
+                      <li className="-mx-6 mt-auto pt-4 border-t border-gray-100">
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-red-600 hover:bg-red-50 w-full rounded-lg"
@@ -112,10 +114,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </Transition.Root>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 shadow-lg">
-          <div className="flex h-16 shrink-0 items-center">
-            <Logo variant="full" className="h-12 w-auto" />
+          <div className="flex h-24 shrink-0 flex-col justify-center border-b border-gray-100 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-wide">HLAPL</h1>
+            <p className="text-xs text-gray-600 font-medium mt-1">Hashmi Law Associates</p>
+            <p className="text-[11px] text-gray-500">Pvt. Ltd.</p>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="h-px w-8 bg-[#c9a84c]"></div>
+              <p className="text-[9px] text-gray-400 uppercase tracking-wider">Est. 2010</p>
+            </div>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-2">
@@ -125,7 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className={`sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                           pathname === item.href
                             ? 'bg-[#c9a84c]/10 text-[#c9a84c] border-r-4 border-[#c9a84c]'
                             : 'text-gray-700 hover:bg-gray-50 hover:text-[#c9a84c]'
@@ -153,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-72">
+      <div className="lg:pl-80">
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/95 backdrop-blur-sm px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
