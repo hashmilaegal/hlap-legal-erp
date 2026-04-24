@@ -22,6 +22,7 @@ export default function ClientsPage() {
   const [showModal, setShowModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [user, setUser] = useState<any>(null)
+  const [errorMsg, setErrorMsg] = useState('')
   const router = useRouter()
   
   const [formData, setFormData] = useState({
@@ -48,35 +49,43 @@ export default function ClientsPage() {
   }
 
   async function fetchClients() {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('created_at', { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('Error fetching clients:', error)
-    } else {
+      if (error) throw error
       setClients(data || [])
+    } catch (error: any) {
+      console.error('Error fetching clients:', error.message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   async function handleCreateClient(e: React.FormEvent) {
     e.preventDefault()
+    setErrorMsg('')
     
     const clientCode = `CLT-${Date.now()}`
     
-    const { data, error } = await supabase
-      .from('clients')
-      .insert([{
-        ...formData,
-        client_code: clientCode
-      }])
-      .select()
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert([{
+          client_code: clientCode,
+          name: formData.name,
+          type: formData.type,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          gst_number: formData.gst_number
+        }])
+        .select()
 
-    if (error) {
-      alert('Error creating client: ' + error.message)
-    } else {
+      if (error) throw error
+      
       alert('Client created successfully!')
       setShowModal(false)
       setFormData({
@@ -88,6 +97,9 @@ export default function ClientsPage() {
         gst_number: ''
       })
       fetchClients()
+    } catch (error: any) {
+      setErrorMsg(error.message)
+      alert('Error: ' + error.message)
     }
   }
 
@@ -99,7 +111,7 @@ export default function ClientsPage() {
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.client_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   if (!user) return null
@@ -115,14 +127,13 @@ export default function ClientsPage() {
                 <a href="/dashboard" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">Dashboard</a>
                 <a href="/clients" className="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Clients</a>
                 <a href="/matters" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">Matters</a>
-                <a href="/invoices" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">Invoices</a>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 hidden md:block">{user.email}</span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg"
               >
                 Logout
               </button>
@@ -140,7 +151,7 @@ export default function ClientsPage() {
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               + Add Client
             </button>
@@ -150,7 +161,7 @@ export default function ClientsPage() {
             <div className="p-4 border-b border-gray-200">
               <input
                 type="text"
-                placeholder="Search clients by name, code, or email..."
+                placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -161,36 +172,26 @@ export default function ClientsPage() {
               {loading ? (
                 <div className="text-center py-8 text-gray-500">Loading clients...</div>
               ) : filteredClients.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No clients found</div>
+                <div className="text-center py-8 text-gray-500">No clients found. Click "+ Add Client" to create one.</div>
               ) : (
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredClients.map((client) => (
                       <tr key={client.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                          {client.client_code}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          {client.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">
-                          {client.type}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {client.email || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {client.phone || '-'}
-                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-blue-600">{client.client_code}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{client.name}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 capitalize">{client.type}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{client.email || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{client.phone || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -201,11 +202,12 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Add Client Modal */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-full max-w-md p-6">
             <h2 className="text-xl font-bold mb-4">Add New Client</h2>
+            {errorMsg && <p className="text-red-600 text-sm mb-3">{errorMsg}</p>}
             <form onSubmit={handleCreateClient} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
@@ -235,7 +237,7 @@ export default function ClientsPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
@@ -244,7 +246,7 @@ export default function ClientsPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
@@ -253,7 +255,7 @@ export default function ClientsPage() {
                   type="text"
                   value={formData.gst_number}
                   onChange={(e) => setFormData({...formData, gst_number: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
@@ -261,8 +263,8 @@ export default function ClientsPage() {
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  rows={2}
                 />
               </div>
               <div className="flex gap-3 pt-4">
