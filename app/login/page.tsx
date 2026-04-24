@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Logo from '@/components/Logo'
+import { PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -31,14 +31,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-[#c9a84c]/20">
-      <div className="relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl w-full max-w-md p-8 m-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0a] via-[#0d1b2a] to-[#0a0a0a]">
+      <div className="relative z-10 bg-white/98 backdrop-blur-sm rounded-2xl shadow-2xl w-full max-w-md p-8 m-4">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <Logo variant="full" className="h-20 w-auto" />
+          <div className="w-20 h-20 mx-auto bg-gradient-to-r from-[#c9a84c] to-[#8b6914] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+            <span className="text-3xl font-bold text-white">HL</span>
           </div>
-          <p className="text-gray-500 mt-2">Hashmi Law Associates Pvt. Ltd.</p>
-          <p className="text-xs text-gray-400 mt-1">Enterprise Legal ERP Suite</p>
+          <h1 className="text-3xl font-bold text-gray-900">HLAPL</h1>
+          <p className="text-sm text-gray-600 mt-1">Hashmi Law Associates Pvt. Ltd.</p>
+          <p className="text-xs text-gray-500 mt-1">Est. 2022 | New Delhi · India</p>
+          <p className="text-xs text-gray-400 mt-3">Enterprise Legal ERP Suite</p>
         </div>
 
         {error && (
@@ -81,10 +83,21 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Internal Use Only</p>
-          <p className="text-xs mt-1">© {new Date().getFullYear()} Hashmi Law Associates Pvt. Ltd.</p>
-          <p className="text-xs text-gray-400 mt-2">New Delhi · India · Global</p>
+        {/* Contact Info on Login Page */}
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <div className="flex justify-center gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-1">
+              <PhoneIcon className="h-3 w-3 text-[#c9a84c]" />
+              <span>+91 11 41040055</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <EnvelopeIcon className="h-3 w-3 text-[#c9a84c]" />
+              <span>info@hlapl.com</span>
+            </div>
+          </div>
+          <p className="text-center text-[10px] text-gray-400 mt-3">
+            © {new Date().getFullYear()} Hashmi Law Associates Pvt. Ltd. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

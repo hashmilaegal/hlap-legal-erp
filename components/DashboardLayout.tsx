@@ -13,6 +13,8 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   ScaleIcon,
+  EnvelopeIcon,
+  PhoneIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -67,12 +69,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 shadow-xl">
-                  <div className="flex h-20 shrink-0 flex-col justify-center border-b border-gray-100 mb-4">
+                  <div className="flex h-auto py-4 flex-col justify-center border-b border-gray-100 mb-2">
                     <h1 className="text-2xl font-bold text-gray-900">HLAPL</h1>
                     <p className="text-xs text-gray-600 font-medium">Hashmi Law Associates</p>
                     <p className="text-[11px] text-gray-500">Pvt. Ltd.</p>
-                    <p className="text-[10px] text-gray-400 mt-1">New Delhi · India</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="h-px w-6 bg-[#c9a84c]"></div>
+                      <p className="text-[10px] text-gray-500">Est. 2022</p>
+                    </div>
                   </div>
+                  
+                  {/* Contact Info in Mobile Sidebar */}
+                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Contact</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <PhoneIcon className="h-3 w-3 text-[#c9a84c]" />
+                        <p className="text-[11px] text-gray-600">+91 11 41040055</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <EnvelopeIcon className="h-3 w-3 text-[#c9a84c]" />
+                        <p className="text-[10px] text-gray-600">info@hlapl.com</p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
                       <li>
@@ -116,15 +137,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 shadow-lg">
-          <div className="flex h-24 shrink-0 flex-col justify-center border-b border-gray-100 mb-2">
+          <div className="flex h-auto py-6 flex-col justify-center border-b border-gray-100 mb-2">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">HLAPL</h1>
             <p className="text-xs text-gray-600 font-medium mt-1">Hashmi Law Associates</p>
             <p className="text-[11px] text-gray-500">Pvt. Ltd.</p>
             <div className="flex items-center gap-2 mt-2">
               <div className="h-px w-8 bg-[#c9a84c]"></div>
-              <p className="text-[9px] text-gray-400 uppercase tracking-wider">Est. 2010</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Est. 2022</p>
             </div>
           </div>
+          
+          {/* Contact Information Section */}
+          <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-4 mb-4 border border-gray-100">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="h-px w-4 bg-[#c9a84c]"></div>
+              Contact Information
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <PhoneIcon className="h-4 w-4 text-[#c9a84c] mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-500">Landline</p>
+                  <p className="text-sm font-medium text-gray-800">+91 11 41040055</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <EnvelopeIcon className="h-4 w-4 text-[#c9a84c] mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-gray-500">Email</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-700">info@hlapl.com</p>
+                    <p className="text-xs text-gray-700">admin@hlapl.com</p>
+                    <p className="text-xs text-gray-700">accounts@hlapl.com</p>
+                    <p className="text-xs text-gray-700">hr@hlapl.com</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-2">
               <li>
