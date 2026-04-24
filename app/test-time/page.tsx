@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+type Matter = {
+  id: string
+  title: string
+  matter_number: string
+}
+
 export default function TestTimePage() {
-  const [matters, setMatters] = useState([])
+  const [matters, setMatters] = useState<Matter[]>([])
   const [selectedMatter, setSelectedMatter] = useState('')
   const [result, setResult] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,7 +24,7 @@ export default function TestTimePage() {
       .from('matters')
       .select('id, title, matter_number')
       .limit(10)
-    if (data) setMatters(data)
+    if (data) setMatters(data as Matter[])
   }
 
   async function testInsert() {
@@ -79,7 +85,7 @@ export default function TestTimePage() {
   }
 
   async function checkTable() {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('time_entries')
       .select('count')
       .limit(1)
@@ -87,7 +93,7 @@ export default function TestTimePage() {
     if (error) {
       setResult('Table check: ❌ ' + error.message)
     } else {
-      setResult('Table check: ✅ time_entries table exists')
+      setResult('Table check: ✅ time_entries table exists and is accessible')
     }
   }
 
@@ -114,7 +120,7 @@ export default function TestTimePage() {
               className="border p-2 rounded w-full"
             >
               <option value="">-- Select a Matter --</option>
-              {matters.map((m: any) => (
+              {matters.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.title} ({m.matter_number})
                 </option>
