@@ -3,10 +3,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { User } from '@supabase/supabase-js'
+
+// Simple type definition
+type UserType = {
+  id: string
+  email: string
+}
 
 export default function InvoicesPage() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserType | null>(null)
   const [invoices, setInvoices] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [matters, setMatters] = useState<any[]>([])
@@ -23,18 +28,19 @@ export default function InvoicesPage() {
   })
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/')
-      } else {
-        setUser(user)
-        fetchInvoices()
-        fetchClients()
-      }
-    }
     checkUser()
   }, [])
+
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/')
+    } else {
+      setUser({ id: user.id, email: user.email || '' })
+      fetchInvoices()
+      fetchClients()
+    }
+  }
 
   async function fetchInvoices() {
     const { data } = await supabase
@@ -237,7 +243,7 @@ export default function InvoicesPage() {
                     className="w-full px-3 py-2 border rounded-lg"
                   >
                     <option value="">Select Client</option>
-                    {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
@@ -248,7 +254,7 @@ export default function InvoicesPage() {
                     className="w-full px-3 py-2 border rounded-lg"
                   >
                     <option value="">Select Matter</option>
-                    {matters.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                    {matters.map((m: any) => <option key={m.id} value={m.id}>{m.title}</option>)}
                   </select>
                 </div>
               </div>
