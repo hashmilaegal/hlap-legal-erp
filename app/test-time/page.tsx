@@ -14,10 +14,20 @@ export default function TestTimePage() {
   const [selectedMatter, setSelectedMatter] = useState('')
   const [result, setResult] = useState('')
   const [loading, setLoading] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
     fetchMatters()
+    getCurrentUser()
   }, [])
+
+  async function getCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setUserEmail(user.email || '')
+      setResult(`Logged in as: ${user.email}`)
+    }
+  }
 
   async function fetchMatters() {
     const { data } = await supabase
@@ -44,18 +54,28 @@ export default function TestTimePage() {
       return
     }
     
-    // Get user's id from users table
-    const { data: userData } = await supabase
+    setResult(`Looking for user with email: ${user.email}`)
+    
+    // Get user's id from users table using email
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('email', user.email)
       .single()
 
-    if (!userData) {
-      setResult('❌ User not found in users table')
+    if (userError) {
+      setResult(`❌ User lookup error: ${userError.message}`)
       setLoading(false)
       return
     }
+
+    if (!userData) {
+      setResult(`❌ User not found in users table for email: ${user.email}`)
+      setLoading(false)
+      return
+    }
+
+    setResult(`Found user ID: ${userData.id}`)
 
     const testData = {
       lawyer_id: userData.id,
@@ -102,6 +122,10 @@ export default function TestTimePage() {
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
         <h1 className="text-2xl font-bold mb-4">🔧 Time Entry Debug Tool</h1>
         
+        <div className="mb-4 p-3 bg-blue-50 rounded">
+          <p className="text-sm">Current User: <strong>{userEmail || 'Loading...'}</strong></p>
+        </div>
+
         <div className="space-y-4">
           <div>
             <button 
