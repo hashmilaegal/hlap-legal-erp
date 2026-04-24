@@ -10,6 +10,13 @@ type UserType = {
   email: string
 }
 
+type InvoiceItem = {
+  description: string
+  quantity: number
+  unit_price: number
+  tax_rate: number
+}
+
 export default function InvoicesPage() {
   const [user, setUser] = useState<UserType | null>(null)
   const [invoices, setInvoices] = useState<any[]>([])
@@ -24,7 +31,7 @@ export default function InvoicesPage() {
     matter_id: '',
     invoice_date: new Date().toISOString().split('T')[0],
     due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-    items: [{ description: 'Legal Services', quantity: 1, unit_price: 0, tax_rate: 18 }]
+    items: [{ description: 'Legal Services', quantity: 1, unit_price: 0, tax_rate: 18 }] as InvoiceItem[]
   })
 
   useEffect(() => {
@@ -51,10 +58,7 @@ export default function InvoicesPage() {
         matters (title, matter_type)
       `)
       .order('created_at', { ascending: false })
-    if (data) {
-      console.log('Fetched invoices:', data)
-      setInvoices(data)
-    }
+    if (data) setInvoices(data)
     setLoading(false)
   }
 
@@ -138,9 +142,9 @@ export default function InvoicesPage() {
     })
   }
 
-  const updateItem = (index: number, field: string, value: any) => {
+  const updateItem = (index: number, field: keyof InvoiceItem, value: string | number) => {
     const newItems = [...formData.items]
-    newItems[index][field] = value
+    newItems[index] = { ...newItems[index], [field]: value }
     setFormData({ ...formData, items: newItems })
   }
 
@@ -217,7 +221,7 @@ export default function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {invoices.map((inv) => (
+                  {invoices.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium text-purple-600">
                         <Link href={`/invoices/${inv.id}`} className="hover:underline cursor-pointer">
@@ -301,7 +305,7 @@ export default function InvoicesPage() {
               <div>
                 <label className="block text-sm font-medium mb-2">Invoice Items</label>
                 <div className="space-y-2">
-                  {formData.items.map((item, idx) => (
+                  {formData.items.map((item: InvoiceItem, idx: number) => (
                     <div key={idx} className="grid grid-cols-12 gap-2">
                       <input type="text" placeholder="Description" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} className="col-span-5 px-3 py-2 border rounded-lg text-sm" />
                       <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value))} className="col-span-2 px-3 py-2 border rounded-lg text-sm" />
