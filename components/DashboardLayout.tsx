@@ -17,6 +17,7 @@ import {
   PhoneIcon,
   CurrencyRupeeIcon,
   FolderIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'Documents', href: '/documents', icon: FolderIcon },
   { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon },
   { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+  { name: 'Client Portal', href: '/client-portal/dashboard', icon: UserGroupIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
