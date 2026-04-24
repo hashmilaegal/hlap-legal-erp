@@ -4,10 +4,16 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
-// Simple type definition
 type UserType = {
   id: string
   email: string
+}
+
+type InvoiceItem = {
+  description: string
+  quantity: number
+  unit_price: number
+  tax_rate: number
 }
 
 export default function InvoicesPage() {
@@ -24,7 +30,7 @@ export default function InvoicesPage() {
     matter_id: '',
     invoice_date: new Date().toISOString().split('T')[0],
     due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-    items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 18 }]
+    items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 18 }] as InvoiceItem[]
   })
 
   useEffect(() => {
@@ -124,9 +130,9 @@ export default function InvoicesPage() {
     })
   }
 
-  const updateItem = (index: number, field: string, value: any) => {
+  const updateItem = (index: number, field: keyof InvoiceItem, value: string | number) => {
     const newItems = [...formData.items]
-    newItems[index][field] = value
+    newItems[index] = { ...newItems[index], [field]: value }
     setFormData({ ...formData, items: newItems })
   }
 
